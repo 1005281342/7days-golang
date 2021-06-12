@@ -20,11 +20,13 @@ func main() {
 
 // handler echoes r.URL.Path
 func indexHandler(w http.ResponseWriter, req *http.Request) {
+	log.Println("indexHandler")
 	fmt.Fprintf(w, "URL.Path = %q\n", req.URL.Path)
 }
 
 // handler echoes r.URL.Header
 func helloHandler(w http.ResponseWriter, req *http.Request) {
+	log.Println("helloHandler")
 	for k, v := range req.Header {
 		fmt.Fprintf(w, "Header[%q] = %q\n", k, v)
 	}

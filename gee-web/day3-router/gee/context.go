@@ -3,6 +3,7 @@ package gee
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -58,6 +59,7 @@ func (c *Context) String(code int, format string, values ...interface{}) {
 }
 
 func (c *Context) JSON(code int, obj interface{}) {
+	log.Printf("contex: %+v Path: %s, Parms: %+v", c, c.Path, c.Params)
 	c.SetHeader("Content-Type", "application/json")
 	c.Status(code)
 	encoder := json.NewEncoder(c.Writer)

@@ -1,6 +1,7 @@
 package gee
 
 import (
+	"log"
 	"net/http"
 	"strings"
 )
@@ -35,6 +36,7 @@ func parsePattern(pattern string) []string {
 
 func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 	parts := parsePattern(pattern)
+	log.Printf("addRoute, pattern: %s, parts: %v", pattern, parts)
 
 	key := method + "-" + pattern
 	_, ok := r.roots[method]
@@ -51,6 +53,7 @@ func (r *router) getRoute(method string, path string) (*node, map[string]string)
 	root, ok := r.roots[method]
 
 	if !ok {
+		// 该请求类型未注册
 		return nil, nil
 	}
 
@@ -60,9 +63,10 @@ func (r *router) getRoute(method string, path string) (*node, map[string]string)
 		parts := parsePattern(n.pattern)
 		for index, part := range parts {
 			if part[0] == ':' {
+				// 匹配成功设置到params
 				params[part[1:]] = searchParts[index]
-			}
-			if part[0] == '*' && len(part) > 1 {
+			} else if part[0] == '*' && len(part) > 1 {
+				// 匹配成功
 				params[part[1:]] = strings.Join(searchParts[index:], "/")
 				break
 			}
@@ -86,10 +90,16 @@ func (r *router) getRoutes(method string) []*node {
 func (r *router) handle(c *Context) {
 	n, params := r.getRoute(c.Method, c.Path)
 	if n != nil {
+		// 获取到该请求路由节点
 		c.Params = params
 		key := c.Method + "-" + n.pattern
-		r.handlers[key](c)
-	} else {
-		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
+		log.Printf("handel key: %s", key)
+		// 取出对应方法并执行
+		if _, has := r.handlers[key]; has {
+			r.handlers[key](c)
+		}
+		return
 	}
+	// 未查询到该请求节点
+	c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
 }
